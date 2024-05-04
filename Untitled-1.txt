@@ -1,0 +1,26 @@
+Define a class Product:
+    Define __init__ method to initialize name, price, location, and inventory attributes
+
+Define a class InventoryManager:
+    Define __init__ method to initialize products list and load inventory from file
+    Define load_inventory method to read inventory data from file and create Product objects
+    Define update_inventory_file method to write updated inventory back to the file
+    Define display_products method to display all products with their details
+    Define purchase_product method to allow a customer to purchase a product and update inventory
+    Define generate_packing_slip method to create a packing slip for the warehouse
+        Sort products by location (aisle, shelf, bin)
+        Create a packing slip listing each product, quantity, and location
+
+Define main function:
+    Initialize inventory_manager with the inventory file
+    Print welcome message and prompt for customer details
+    Loop until the user chooses to exit:
+        Display available products
+        Prompt the user for the product they want to purchase and quantity
+        Purchase the product and update inventory
+    Generate a packing slip for the customer's order
+    Display the packing slip
+    Update the inventory file
+    Print a thank you message
+
+Call the main function
