@@ -1,47 +1,65 @@
 SEPARATOR = "---------------------------"
 
+PRICE_ADULT = 5
+PRICE_CHILD = 4
+PRICE_FAMILY_A = 16
+PRICE_FAMILY_B = 16
+
+FAMILY_A_ADULTS = 2
+FAMILY_A_CHILDREN = 2
+FAMILY_B_ADULTS = 1
+FAMILY_B_CHILDREN = 3
+
+ERR_INVALID_INT = "Error: Please enter a valid integer using digits."
+
 
 def get_integer_input(prompt):
-    """Prompt user for input and validate it is a whole integer."""
     while True:
         value = input(prompt)
         if '.' in value:
-            print("Error: Please enter a valid integer using digits.")
+            print(ERR_INVALID_INT)
             continue
         try:
             return int(value)
         except ValueError:
-            print("Error: Please enter a valid integer using digits.")
+            print(ERR_INVALID_INT)
+
+
+def get_validated_input(prompt, min_value, error_msg):
+    while True:
+        value = get_integer_input(prompt)
+        if value >= min_value:
+            return value
+        print(error_msg)
 
 
 def calculate_cheapest(adults, children):
-    """Return (total_cost, receipt_lines) using the cheapest ticket combination."""
     best_cost = float('inf')
     best_receipt = []
 
-    # Try every valid combination of Family Pass A and Family Pass B
-    for fa in range(adults // 2 + 1):
-        for fb in range((adults - 2 * fa) + 1):
-            rem_adults = adults - 2 * fa - fb
-            rem_children = children - 2 * fa - 3 * fb
+    for fa in range(adults // FAMILY_A_ADULTS + 1):
+        for fb in range(adults - FAMILY_A_ADULTS * fa + 1):
+            rem_adults = adults - FAMILY_A_ADULTS * fa - FAMILY_B_ADULTS * fb
+            rem_children = children - FAMILY_A_CHILDREN * fa - FAMILY_B_CHILDREN * fb
 
             if rem_children < 0:
-                continue  # Not enough children to fill these passes
+                break  # Larger fb only increases child usage — no point continuing
 
-            cost = 16 * fa + 16 * fb + 5 * rem_adults + 4 * rem_children
+            cost = (PRICE_FAMILY_A * fa + PRICE_FAMILY_B * fb
+                    + PRICE_ADULT * rem_adults + PRICE_CHILD * rem_children)
 
             if cost < best_cost:
                 best_cost = cost
-                receipt = []
-                if fa > 0:
-                    receipt.append((fa, "Family Pass A", 16 * fa))
-                if fb > 0:
-                    receipt.append((fb, "Family Pass B", 16 * fb))
-                if rem_adults > 0:
-                    receipt.append((rem_adults, "Adult", 5 * rem_adults))
-                if rem_children > 0:
-                    receipt.append((rem_children, "Child", 4 * rem_children))
-                best_receipt = receipt
+                best_receipt = [
+                    (qty, name, unit * qty)
+                    for qty, name, unit in [
+                        (fa,          "Family Pass A", PRICE_FAMILY_A),
+                        (fb,          "Family Pass B", PRICE_FAMILY_B),
+                        (rem_adults,  "Adult",         PRICE_ADULT),
+                        (rem_children,"Child",         PRICE_CHILD),
+                    ]
+                    if qty > 0
+                ]
 
     return best_cost, best_receipt
 
@@ -59,25 +77,17 @@ def main():
     print("--- Codetown Public Pool POS ---")
 
     while True:
-        start = input("\nPress Enter to exit or type any key to start a new sale: ")
-        if start == "":
+        if input("\nPress Enter to exit or type any key to start a new sale: ") == "":
             break
 
-        # Validate adults
-        while True:
-            adults = get_integer_input("Enter number of adults: ")
-            if adults < 1:
-                print("Error: At least one adult is required for supervision.")
-            else:
-                break
-
-        # Validate children
-        while True:
-            children = get_integer_input("Enter number of children: ")
-            if children < 0:
-                print("Error: Number of children cannot be negative.")
-            else:
-                break
+        adults = get_validated_input(
+            "Enter number of adults: ", 1,
+            "Error: At least one adult is required for supervision."
+        )
+        children = get_validated_input(
+            "Enter number of children: ", 0,
+            "Error: Number of children cannot be negative."
+        )
 
         total, receipt = calculate_cheapest(adults, children)
         print_receipt(receipt, total)
